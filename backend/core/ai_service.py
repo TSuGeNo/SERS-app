@@ -195,13 +195,6 @@ class AIService:
         self.api_key = settings.OPENROUTER_API_KEY if hasattr(settings, 'OPENROUTER_API_KEY') else ""
         self.http_client = httpx.AsyncClient(timeout=120.0)
         
-        # Log API key status (masked for security)
-        if self.api_key:
-            masked_key = f"{self.api_key[:10]}...{self.api_key[-4:]}" if len(self.api_key) > 14 else "***"
-            print(f"🔑 OpenRouter API key loaded: {masked_key}")
-        else:
-            print("⚠️ No OpenRouter API key configured - running in demo mode")
-        
         # Model status tracking
         self._model_status: Dict[str, Dict[str, Any]] = {}
         self._last_verification: Optional[datetime] = None
