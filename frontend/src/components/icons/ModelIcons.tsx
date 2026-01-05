@@ -87,6 +87,48 @@ export const QwenIcon: React.FC<ModelIconProps> = ({ className = '', size = 24 }
     </svg>
 );
 
+// DeepSeek AI Icon - A stylized deep neural network / sea creature
+export const DeepSeekIcon: React.FC<ModelIconProps> = ({ className = '', size = 24 }) => (
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+    >
+        <defs>
+            <linearGradient id="deepseekGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#4F46E5" />
+                <stop offset="100%" stopColor="#7C3AED" />
+            </linearGradient>
+        </defs>
+        <circle cx="12" cy="12" r="11" fill="url(#deepseekGrad)" />
+        {/* Deep layers representation */}
+        <path
+            d="M6 8h12M6 12h12M6 16h12"
+            stroke="white"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            opacity="0.5"
+        />
+        {/* Neural nodes */}
+        <circle cx="8" cy="8" r="1.5" fill="white" />
+        <circle cx="12" cy="8" r="1.5" fill="white" />
+        <circle cx="16" cy="8" r="1.5" fill="white" />
+        <circle cx="10" cy="12" r="1.5" fill="white" />
+        <circle cx="14" cy="12" r="1.5" fill="white" />
+        <circle cx="12" cy="16" r="1.5" fill="white" />
+        {/* Connections */}
+        <line x1="8" y1="9.5" x2="10" y2="10.5" stroke="white" strokeWidth="0.8" />
+        <line x1="12" y1="9.5" x2="10" y2="10.5" stroke="white" strokeWidth="0.8" />
+        <line x1="12" y1="9.5" x2="14" y2="10.5" stroke="white" strokeWidth="0.8" />
+        <line x1="16" y1="9.5" x2="14" y2="10.5" stroke="white" strokeWidth="0.8" />
+        <line x1="10" y1="13.5" x2="12" y2="14.5" stroke="white" strokeWidth="0.8" />
+        <line x1="14" y1="13.5" x2="12" y2="14.5" stroke="white" strokeWidth="0.8" />
+    </svg>
+);
+
 // Google Gemini Icon - A stylized sparkle/star pattern
 export const GeminiIcon: React.FC<ModelIconProps> = ({ className = '', size = 24 }) => (
     <svg
@@ -161,9 +203,9 @@ export const AIIcon: React.FC<ModelIconProps> = ({ className = '', size = 24 }) 
 
 // Map of model keys to their icons
 export const ModelIcons = {
-    chatgpt: LlamaIcon,
-    claude: QwenIcon,
-    gemini: GeminiIcon,
+    chatgpt: DeepSeekIcon,  // DeepSeek V3
+    claude: DeepSeekIcon,   // DeepSeek R1
+    gemini: GeminiIcon,     // Google Gemini
 } as const;
 
 // Get icon component for a model
