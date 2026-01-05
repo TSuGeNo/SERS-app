@@ -5,23 +5,23 @@ export async function GET() {
         api_key_valid: true,
         available_models: 2,
         total_models: 2,
-        provider: 'OpenRouter',
+        provider: 'OpenRouter (Free)',
         models: [
             {
                 id: 'gemini',
-                name: 'Gemini 3 Flash',
+                name: 'Gemini 2.0 Flash',
                 provider: 'Google',
                 status: 'available',
-                description: 'Google\'s latest & fastest AI',
+                description: 'Fast multimodal AI',
             },
             {
                 id: 'claude',
-                name: 'Claude Opus 4.5',
-                provider: 'Anthropic',
+                name: 'Llama 3.3 70B',
+                provider: 'Meta',
                 status: 'available',
-                description: 'Most capable reasoning model',
+                description: 'Powerful open model',
             },
         ],
-        message: '2/2 models available',
+        message: '2/2 models available (Free)',
     });
 }

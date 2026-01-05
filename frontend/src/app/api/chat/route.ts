@@ -1,121 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// OpenRouter API endpoint
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// Google AI Gemini API - Your API Key
+const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY || 'AIzaSyCFJmpbVRj51NhcGOz0dO-NegYO690j8KQ';
 
-// API Keys from environment variables (set these in Vercel dashboard)
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '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';
-const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY || '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';
+// Google AI API endpoint
+const GOOGLE_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-// AI Model configurations - 2 powerful models via OpenRouter
-const AI_MODELS: Record<string, {
-    openrouterId: string;
-    name: string;
-    apiKey: string;
-    description: string
-}> = {
+// Available models
+const MODELS = {
     gemini: {
-        openrouterId: 'google/gemini-3-flash-preview',
-        name: 'Gemini 3 Flash',
-        apiKey: GEMINI_API_KEY,
-        description: 'Google\'s latest Gemini 3 model - fast and powerful',
+        id: 'gemini-1.5-flash',
+        name: 'Gemini 1.5 Flash',
     },
     claude: {
-        openrouterId: 'anthropic/claude-opus-4.5',
-        name: 'Claude Opus 4.5',
-        apiKey: CLAUDE_API_KEY,
-        description: 'Anthropic\'s most capable model',
+        id: 'gemini-1.5-pro',
+        name: 'Gemini 1.5 Pro',
     },
 };
 
-const SERS_SYSTEM_PROMPT = `You are an expert AI assistant specializing in Surface-Enhanced Raman Spectroscopy (SERS), spectroscopy data analysis, and scientific programming. You excel at:
+const SYSTEM_PROMPT = `You are an expert AI assistant for the SERS-Insight platform, specializing in Surface-Enhanced Raman Spectroscopy (SERS) and scientific data analysis.
 
-1. **Scientific Analysis**: Accurate interpretation of Raman spectra, peak identification, molecular fingerprinting
-2. **Programming**: Writing Python code for data analysis, visualization, and spectroscopy workflows
-3. **Technical Guidance**: Experimental setup, nanoparticle synthesis, substrate optimization
-4. **Data Processing**: Baseline correction, peak fitting, quantitative analysis algorithms
+Your expertise includes:
+- Raman spectroscopy peak identification and analysis
+- Python programming for scientific data processing
+- Baseline correction, smoothing, and peak fitting
+- Molecular fingerprinting and compound identification
 
-When writing code:
-- Use Python with numpy, scipy, matplotlib for spectroscopy
-- Include clear comments and explanations
-- Provide complete, runnable code examples
-
-When analyzing spectral data:
-- Identify characteristic peaks with wavenumber positions (cm⁻¹)
-- Suggest molecular assignments based on peak positions
-- Discuss relevant vibrational modes
-
-Be helpful, accurate, and provide detailed responses with code examples when appropriate.`;
+Provide helpful, accurate responses with code examples when relevant.`;
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { message, model, dataContext } = body;
 
-        // Get model config - default to gemini if invalid model
-        const modelKey = model === 'claude' ? 'claude' : 'gemini';
-        const modelConfig = AI_MODELS[modelKey];
-
-        if (!modelConfig.apiKey) {
+        // Check API key
+        if (!GOOGLE_AI_API_KEY || GOOGLE_AI_API_KEY.length < 30) {
             return NextResponse.json({
-                content: generateDemoResponse(message, dataContext),
-                model: modelKey,
+                content: getDemoResponse(message),
+                model: model || 'gemini',
                 demo: true,
+                setupRequired: true,
             });
         }
 
-        // Build the user message with data context if available
-        let userContent = message;
-        if (dataContext) {
-            userContent = `[Data Context: ${dataContext.pointCount} data points, wavenumber range ${dataContext.wavenumberRange?.min?.toFixed(0)}-${dataContext.wavenumberRange?.max?.toFixed(0)} cm⁻¹, max intensity: ${dataContext.maxIntensity?.toFixed(2)}]\n\n${message}`;
+        const modelKey = model === 'claude' ? 'claude' : 'gemini';
+        const modelConfig = MODELS[modelKey as keyof typeof MODELS];
+
+        // Build prompt with context
+        let prompt = SYSTEM_PROMPT + '\n\nUser: ' + message;
+        if (dataContext?.pointCount) {
+            prompt = SYSTEM_PROMPT + `\n\n[Data: ${dataContext.pointCount} points, ${dataContext.wavenumberRange?.min?.toFixed(0)}-${dataContext.wavenumberRange?.max?.toFixed(0)} cm⁻¹]\n\nUser: ` + message;
         }
 
-        console.log(`Calling OpenRouter API with model: ${modelConfig.openrouterId}`);
-
-        // Call OpenRouter API
-        const response = await fetch(OPENROUTER_API_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${modelConfig.apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://sers-insight.vercel.app',
-                'X-Title': 'SERS-Insight Platform',
-            },
-            body: JSON.stringify({
-                model: modelConfig.openrouterId,
-                messages: [
-                    { role: 'system', content: SERS_SYSTEM_PROMPT },
-                    { role: 'user', content: userContent },
-                ],
-                max_tokens: 4000,
-                temperature: 0.7,
-            }),
-        });
+        // Call Google AI
+        const response = await fetch(
+            `${GOOGLE_API_URL}/${modelConfig.id}:generateContent?key=${GOOGLE_AI_API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 4096,
+                    },
+                }),
+            }
+        );
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('OpenRouter API error:', response.status, errorText);
-
-            let errorMessage = 'API error occurred';
-            try {
-                const errorData = JSON.parse(errorText);
-                errorMessage = errorData.error?.message || errorMessage;
-            } catch {
-                errorMessage = errorText.substring(0, 200);
-            }
-
+            const error = await response.text();
+            console.error('Google AI error:', error);
             return NextResponse.json({
-                content: `**API Error**: ${errorMessage}\n\n${generateDemoResponse(message, dataContext)}`,
+                content: getDemoResponse(message),
                 model: modelKey,
                 demo: true,
-                error: errorMessage,
+                error: 'API error - showing demo response',
             });
         }
 
         const data = await response.json();
-        const content = data.choices?.[0]?.message?.content || 'No response generated';
+        const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        console.log(`Successfully got response from ${modelConfig.name}`);
+        if (!content) {
+            return NextResponse.json({
+                content: getDemoResponse(message),
+                model: modelKey,
+                demo: true,
+            });
+        }
 
         return NextResponse.json({
             content,
@@ -125,76 +98,152 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error('Chat API error:', error);
-        return NextResponse.json(
-            {
-                error: 'Failed to process request',
-                details: error instanceof Error ? error.message : 'Unknown error'
-            },
-            { status: 500 }
-        );
+        console.error('Error:', error);
+        return NextResponse.json({
+            content: getDemoResponse(''),
+            model: 'gemini',
+            demo: true,
+            error: String(error),
+        });
     }
 }
 
-// Demo response fallback
-function generateDemoResponse(message: string, dataContext?: any): string {
-    const lowerMessage = message.toLowerCase();
+function getDemoResponse(message: string): string {
+    const lower = message.toLowerCase();
 
-    if (lowerMessage.includes('code') || lowerMessage.includes('python') || lowerMessage.includes('program')) {
-        return `## Python Code Example
+    if (lower.includes('machine learning') || lower.includes('ml')) {
+        return `## Machine Learning
+
+Machine Learning (ML) is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed.
+
+### Types of Machine Learning:
+
+1. **Supervised Learning** - Learning from labeled data
+   - Classification (spam detection, image recognition)
+   - Regression (price prediction, risk assessment)
+
+2. **Unsupervised Learning** - Finding patterns in unlabeled data
+   - Clustering (customer segmentation)
+   - Dimensionality reduction (PCA)
+
+3. **Reinforcement Learning** - Learning through trial and error
+   - Game playing, robotics
+
+### Common Algorithms:
+- Linear/Logistic Regression
+- Decision Trees & Random Forests
+- Neural Networks & Deep Learning
+- Support Vector Machines (SVM)
+- K-Means Clustering
+
+### Python Example:
+\`\`\`python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Train model
+model = RandomForestClassifier(n_estimators=100)
+model.fit(X_train, y_train)
+
+# Predict
+predictions = model.predict(X_test)
+\`\`\``;
+    }
+
+    if (lower.includes('code') || lower.includes('python') || lower.includes('peak')) {
+        return `## Python Code for Spectral Analysis
 
 \`\`\`python
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks, savgol_filter
+from scipy.ndimage import uniform_filter1d
 
-# Load your spectrum data
+# Load spectrum data
 wavenumber = np.linspace(200, 2000, 901)
-intensity = np.random.random(901) * 0.5
+intensity = np.random.random(901) + 0.5 * np.exp(-((wavenumber-1000)**2)/5000)
 
-# Baseline correction
+# Baseline correction (polynomial)
 baseline = np.polyval(np.polyfit(wavenumber, intensity, 3), wavenumber)
 corrected = intensity - baseline
 
-# Smoothing with Savitzky-Golay filter
+# Smoothing
 smoothed = savgol_filter(corrected, window_length=11, polyorder=3)
 
 # Peak detection
-peaks, _ = find_peaks(smoothed, prominence=0.1)
+peaks, properties = find_peaks(smoothed, prominence=0.05, height=0.1)
 
 # Plot
-plt.figure(figsize=(12, 6))
-plt.plot(wavenumber, smoothed, 'b-', label='Processed')
-plt.plot(wavenumber[peaks], smoothed[peaks], 'ro', label='Peaks')
-plt.xlabel('Wavenumber (cm⁻¹)')
-plt.ylabel('Intensity')
-plt.legend()
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.plot(wavenumber, smoothed, 'b-', label='Processed')
+ax.plot(wavenumber[peaks], smoothed[peaks], 'ro', markersize=8, label='Peaks')
+ax.set_xlabel('Wavenumber (cm⁻¹)')
+ax.set_ylabel('Intensity (a.u.)')
+ax.legend()
+plt.tight_layout()
 plt.show()
+
+print(f"Detected {len(peaks)} peaks at: {wavenumber[peaks]}")
 \`\`\``;
     }
 
-    if (dataContext) {
-        return `## Spectrum Analysis
+    if (lower.includes('sers') || lower.includes('raman')) {
+        return `## Surface-Enhanced Raman Spectroscopy (SERS)
 
-Based on your data (${dataContext.pointCount} points, ${dataContext.wavenumberRange?.min?.toFixed(0)}-${dataContext.wavenumberRange?.max?.toFixed(0)} cm⁻¹):
+SERS is a powerful analytical technique that enhances Raman scattering signals by factors of **10⁶ to 10¹¹** using metallic nanostructures.
 
-- Max intensity: ${dataContext.maxIntensity?.toFixed(2)} a.u.
-- Spectral range: Fingerprint region
+### Key Concepts:
 
-### Common Peak Assignments
+1. **Enhancement Mechanisms:**
+   - Electromagnetic (EM) enhancement - plasmon resonance
+   - Chemical enhancement - charge transfer
+
+2. **Common Substrates:**
+   - Gold nanoparticles (stable, biocompatible)
+   - Silver nanoparticles (highest enhancement)
+   - Nanostructured surfaces
+
+3. **Applications:**
+   - Trace detection (pollutants, drugs)
+   - Biomedical diagnostics
+   - Food safety analysis
+
+### Typical Peak Assignments:
 | Wavenumber | Assignment |
 |------------|------------|
-| ~1000 cm⁻¹ | Phenylalanine |
-| ~1450 cm⁻¹ | CH₂ bending |
+| ~1000 cm⁻¹ | Ring breathing (aromatic) |
+| ~1340 cm⁻¹ | CH₃ deformation |
+| ~1580 cm⁻¹ | C=C stretching |
 | ~1650 cm⁻¹ | Amide I |`;
     }
 
     return `## SERS-Insight AI Assistant
 
-I can help with:
-- **Spectral Analysis**: Peak identification, baseline correction
-- **Python Programming**: Data processing, visualization
-- **Research**: Methodology, troubleshooting
+I can help you with:
 
-Ask me anything about SERS or spectroscopy!`;
+### 🔬 Spectral Analysis
+- Peak identification and assignment
+- Baseline correction techniques
+- Quantitative analysis
+
+### 💻 Programming
+- Python code for data processing
+- Visualization with matplotlib
+- Machine learning for spectroscopy
+
+### 📚 Research Support
+- SERS methodology
+- Experimental optimization
+- Literature guidance
+
+**Ask me anything!** For example:
+- "Write Python code to detect peaks in my spectrum"
+- "Explain machine learning for spectroscopy"
+- "How do I correct baseline in SERS data?"
+
+---
+*To enable full AI capabilities, add your Google AI API key to the environment.*`;
 }
