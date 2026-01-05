@@ -1,0 +1,32 @@
+{
+    "name": "sers-insight-platform",
+    "version": "1.0.0",
+    "description": "SERS-Insight Platform - Full-stack application for Surface-Enhanced Raman Spectroscopy analysis",
+    "private": true,
+    "scripts": {
+        "dev": "concurrently -n backend,frontend -c yellow,cyan \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "dev:frontend": "cd frontend && npm run dev",
+        "dev:backend": "cd backend && uvicorn main:app --reload --port 8000",
+        "install:all": "npm install && cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+        "build": "cd frontend && npm run build",
+        "start:frontend": "cd frontend && npm start",
+        "start:backend": "cd backend && uvicorn main:app --port 8000",
+        "lint": "cd frontend && npm run lint"
+    },
+    "devDependencies": {
+        "concurrently": "^9.1.2"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "keywords": [
+        "sers",
+        "raman-spectroscopy",
+        "data-analysis",
+        "ai",
+        "fastapi",
+        "nextjs"
+    ],
+    "author": "",
+    "license": "MIT"
+}

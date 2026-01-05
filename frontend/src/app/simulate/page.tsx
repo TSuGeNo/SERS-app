@@ -325,27 +325,27 @@ export default function SimulatePage() {
 
     return (
         <MainLayout>
-            <div className="flex flex-col h-full overflow-auto">
+            <div className="flex flex-col h-full overflow-auto bg-gradient-to-br from-slate-50 via-teal-50/30 to-white">
                 {/* Header */}
-                <div className="p-6 border-b bg-white">
+                <div className="p-6 border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2.5 rounded-xl gradient-primary">
+                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-200">
                             <FlaskConical className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold">LSPR Simulation Lab</h1>
+                            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-cyan-600">LSPR Simulation Lab</h1>
                             <p className="text-muted-foreground">
                                 Physics-based SERS enhancement simulation using Mie theory and Drude-Lorentz model
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
-                        <Badge variant="outline" className="gap-1">
+                        <Badge variant="outline" className="gap-1 border-teal-200 text-teal-700">
                             <CheckCircle2 className="h-3 w-3" />
                             Scientifically Validated
                         </Badge>
-                        <Badge variant="outline">Mie Theory</Badge>
-                        <Badge variant="outline">Drude-Lorentz Model</Badge>
+                        <Badge variant="outline" className="border-teal-200 text-teal-700">Mie Theory</Badge>
+                        <Badge variant="outline" className="border-teal-200 text-teal-700">Drude-Lorentz Model</Badge>
                     </div>
                 </div>
 
@@ -373,8 +373,8 @@ export default function SimulatePage() {
                                                 key={mat}
                                                 onClick={() => setMaterial(mat)}
                                                 className={`p-4 rounded-xl border-2 text-left transition-all ${material === mat
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-border hover:border-primary/50'
+                                                    ? 'border-primary bg-primary/5'
+                                                    : 'border-border hover:border-primary/50'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-2 mb-1">
@@ -444,8 +444,8 @@ export default function SimulatePage() {
                                                 key={wl}
                                                 onClick={() => setExcitation(wl)}
                                                 className={`p-3 rounded-lg border text-center transition-all ${excitation === wl
-                                                        ? 'border-primary bg-primary text-white'
-                                                        : 'border-border hover:border-primary/50'
+                                                    ? 'border-primary bg-primary text-white'
+                                                    : 'border-border hover:border-primary/50'
                                                     }`}
                                             >
                                                 <div className="font-semibold">{wl} nm</div>
@@ -521,13 +521,13 @@ export default function SimulatePage() {
                                             </div>
 
                                             <div className={`p-4 rounded-xl border-2 ${results.quality === 'excellent' ? 'border-green-500 bg-green-50' :
-                                                    results.quality === 'good' ? 'border-yellow-500 bg-yellow-50' :
-                                                        'border-red-500 bg-red-50'
+                                                results.quality === 'good' ? 'border-yellow-500 bg-yellow-50' :
+                                                    'border-red-500 bg-red-50'
                                                 }`}>
                                                 <div className="flex items-start gap-2">
                                                     <Info className={`h-5 w-5 mt-0.5 ${results.quality === 'excellent' ? 'text-green-600' :
-                                                            results.quality === 'good' ? 'text-yellow-600' :
-                                                                'text-red-600'
+                                                        results.quality === 'good' ? 'text-yellow-600' :
+                                                            'text-red-600'
                                                         }`} />
                                                     <div>
                                                         <p className="font-medium mb-1">Recommendation</p>

@@ -3,9 +3,14 @@ Application configuration settings
 """
 
 from typing import List
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
+# Get the directory where this config file resides
+CONFIG_DIR = Path(__file__).parent
+BACKEND_DIR = CONFIG_DIR.parent
+ENV_FILE_PATH = BACKEND_DIR / ".env"
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
@@ -16,11 +21,15 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     SECRET_KEY: str = "your-secret-key-change-in-production"
     
-    # CORS
+    # CORS - Allow all common development origins
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "*",  # Allow all origins in development - remove in production
     ]
     
     # Database
@@ -46,7 +55,7 @@ class Settings(BaseSettings):
     DEFAULT_SMOOTHING_POLYORDER: int = 3
     
     class Config:
-        env_file = ".env"
+        env_file = str(ENV_FILE_PATH)
         case_sensitive = True
 
 
