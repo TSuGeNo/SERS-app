@@ -1,34 +1,27 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-    // Always show all models as available - they work with hardcoded API key
     return NextResponse.json({
         api_key_valid: true,
-        available_models: 3,
-        total_models: 3,
+        available_models: 2,
+        total_models: 2,
+        provider: 'OpenRouter',
         models: [
             {
                 id: 'gemini',
-                name: 'Gemini 2.0 Flash',
+                name: 'Gemini 3 Flash',
                 provider: 'Google',
                 status: 'available',
-                description: 'Fast multimodal analysis',
-            },
-            {
-                id: 'chatgpt',
-                name: 'DeepSeek V3',
-                provider: 'DeepSeek',
-                status: 'available',
-                description: 'Best for coding & reasoning',
+                description: 'Google\'s latest & fastest AI',
             },
             {
                 id: 'claude',
-                name: 'DeepSeek R1',
-                provider: 'DeepSeek',
+                name: 'Claude Opus 4.5',
+                provider: 'Anthropic',
                 status: 'available',
-                description: 'Advanced reasoning model',
+                description: 'Most capable reasoning model',
             },
         ],
-        message: 'All models available via OpenRouter',
+        message: '2/2 models available',
     });
 }

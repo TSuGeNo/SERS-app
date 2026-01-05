@@ -1,25 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Your OpenRouter API Key - works immediately without .env.local setup
-const OPENROUTER_API_KEY = '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';
+// OpenRouter API endpoint
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Powerful AI Models for programming and analysis
-// Using the best free-tier models available on OpenRouter
-const AI_MODELS: Record<string, { openrouterId: string; name: string; description: string }> = {
+// API Keys from environment variables (set these in Vercel dashboard)
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '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';
+const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY || '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';
+
+// AI Model configurations - 2 powerful models via OpenRouter
+const AI_MODELS: Record<string, {
+    openrouterId: string;
+    name: string;
+    apiKey: string;
+    description: string
+}> = {
     gemini: {
-        openrouterId: 'google/gemini-2.0-flash-exp:free',
-        name: 'Gemini 2.0 Flash',
-        description: 'Google\'s latest and fastest model - excellent for analysis',
-    },
-    chatgpt: {
-        openrouterId: 'deepseek/deepseek-chat:free',
-        name: 'DeepSeek V3',
-        description: 'DeepSeek\'s most powerful model - excellent for coding & reasoning',
+        openrouterId: 'google/gemini-3-flash-preview',
+        name: 'Gemini 3 Flash',
+        apiKey: GEMINI_API_KEY,
+        description: 'Google\'s latest Gemini 3 model - fast and powerful',
     },
     claude: {
-        openrouterId: 'deepseek/deepseek-r1:free',
-        name: 'DeepSeek R1',
-        description: 'DeepSeek\'s reasoning model - best for complex problems',
+        openrouterId: 'anthropic/claude-opus-4.5',
+        name: 'Claude Opus 4.5',
+        apiKey: CLAUDE_API_KEY,
+        description: 'Anthropic\'s most capable model',
     },
 };
 
@@ -34,13 +39,11 @@ When writing code:
 - Use Python with numpy, scipy, matplotlib for spectroscopy
 - Include clear comments and explanations
 - Provide complete, runnable code examples
-- Follow scientific computing best practices
 
 When analyzing spectral data:
 - Identify characteristic peaks with wavenumber positions (cm⁻¹)
 - Suggest molecular assignments based on peak positions
 - Discuss relevant vibrational modes
-- Reference established databases (RRUFF, SDBS, etc.)
 
 Be helpful, accurate, and provide detailed responses with code examples when appropriate.`;
 
@@ -49,18 +52,17 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { message, model, dataContext } = body;
 
-        // Use the hardcoded API key or fall back to environment variable
-        const apiKey = OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+        // Get model config - default to gemini if invalid model
+        const modelKey = model === 'claude' ? 'claude' : 'gemini';
+        const modelConfig = AI_MODELS[modelKey];
 
-        if (!apiKey || apiKey === 'your_openrouter_api_key_here') {
+        if (!modelConfig.apiKey) {
             return NextResponse.json({
                 content: generateDemoResponse(message, dataContext),
-                model: model,
+                model: modelKey,
                 demo: true,
             });
         }
-
-        const modelConfig = AI_MODELS[model] || AI_MODELS.gemini;
 
         // Build the user message with data context if available
         let userContent = message;
@@ -70,12 +72,13 @@ export async function POST(request: NextRequest) {
 
         console.log(`Calling OpenRouter API with model: ${modelConfig.openrouterId}`);
 
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        // Call OpenRouter API
+        const response = await fetch(OPENROUTER_API_URL, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
+                'Authorization': `Bearer ${modelConfig.apiKey}`,
                 'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://sers-insight.app',
+                'HTTP-Referer': 'https://sers-insight.vercel.app',
                 'X-Title': 'SERS-Insight Platform',
             },
             body: JSON.stringify({
@@ -93,7 +96,6 @@ export async function POST(request: NextRequest) {
             const errorText = await response.text();
             console.error('OpenRouter API error:', response.status, errorText);
 
-            // Try to parse error for better message
             let errorMessage = 'API error occurred';
             try {
                 const errorData = JSON.parse(errorText);
@@ -103,8 +105,8 @@ export async function POST(request: NextRequest) {
             }
 
             return NextResponse.json({
-                content: `**API Error**: ${errorMessage}\n\nFalling back to demo response:\n\n${generateDemoResponse(message, dataContext)}`,
-                model: model,
+                content: `**API Error**: ${errorMessage}\n\n${generateDemoResponse(message, dataContext)}`,
+                model: modelKey,
                 demo: true,
                 error: errorMessage,
             });
@@ -117,7 +119,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             content,
-            model: model,
+            model: modelKey,
             modelName: modelConfig.name,
             demo: false,
         });
@@ -141,8 +143,6 @@ function generateDemoResponse(message: string, dataContext?: any): string {
     if (lowerMessage.includes('code') || lowerMessage.includes('python') || lowerMessage.includes('program')) {
         return `## Python Code Example
 
-Here's a sample code snippet for spectral analysis:
-
 \`\`\`python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -150,9 +150,9 @@ from scipy.signal import find_peaks, savgol_filter
 
 # Load your spectrum data
 wavenumber = np.linspace(200, 2000, 901)
-intensity = np.random.random(901) * 0.5  # Replace with your data
+intensity = np.random.random(901) * 0.5
 
-# Baseline correction using polynomial fitting
+# Baseline correction
 baseline = np.polyval(np.polyfit(wavenumber, intensity, 3), wavenumber)
 corrected = intensity - baseline
 
@@ -160,21 +160,17 @@ corrected = intensity - baseline
 smoothed = savgol_filter(corrected, window_length=11, polyorder=3)
 
 # Peak detection
-peaks, properties = find_peaks(smoothed, prominence=0.1, height=0.2)
+peaks, _ = find_peaks(smoothed, prominence=0.1)
 
-# Plot results
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.plot(wavenumber, smoothed, 'b-', label='Processed')
-ax.plot(wavenumber[peaks], smoothed[peaks], 'ro', label='Peaks')
-ax.set_xlabel('Wavenumber (cm⁻¹)')
-ax.set_ylabel('Intensity (a.u.)')
-ax.legend()
+# Plot
+plt.figure(figsize=(12, 6))
+plt.plot(wavenumber, smoothed, 'b-', label='Processed')
+plt.plot(wavenumber[peaks], smoothed[peaks], 'ro', label='Peaks')
+plt.xlabel('Wavenumber (cm⁻¹)')
+plt.ylabel('Intensity')
+plt.legend()
 plt.show()
-
-print(f"Detected {len(peaks)} peaks at: {wavenumber[peaks]}")
-\`\`\`
-
-*Configure the API key for real AI-powered code generation.*`;
+\`\`\``;
     }
 
     if (dataContext) {
@@ -182,7 +178,6 @@ print(f"Detected {len(peaks)} peaks at: {wavenumber[peaks]}")
 
 Based on your data (${dataContext.pointCount} points, ${dataContext.wavenumberRange?.min?.toFixed(0)}-${dataContext.wavenumberRange?.max?.toFixed(0)} cm⁻¹):
 
-### Detected Features
 - Max intensity: ${dataContext.maxIntensity?.toFixed(2)} a.u.
 - Spectral range: Fingerprint region
 
@@ -191,19 +186,15 @@ Based on your data (${dataContext.pointCount} points, ${dataContext.wavenumberRa
 |------------|------------|
 | ~1000 cm⁻¹ | Phenylalanine |
 | ~1450 cm⁻¹ | CH₂ bending |
-| ~1650 cm⁻¹ | Amide I |
-
-*Configure API key for detailed AI analysis.*`;
+| ~1650 cm⁻¹ | Amide I |`;
     }
 
     return `## SERS-Insight AI Assistant
 
 I can help with:
 - **Spectral Analysis**: Peak identification, baseline correction
-- **Python Programming**: Data processing, visualization code
-- **Research**: Methodology, troubleshooting, references
+- **Python Programming**: Data processing, visualization
+- **Research**: Methodology, troubleshooting
 
-Ask me anything about SERS or spectroscopy!
-
-*Note: Configure your OpenRouter API key for real AI responses.*`;
+Ask me anything about SERS or spectroscopy!`;
 }

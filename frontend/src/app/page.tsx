@@ -72,7 +72,7 @@ interface UploadedData {
 
 type AIModel = 'chatgpt' | 'claude' | 'gemini';
 
-// AI Model configurations (via OpenRouter - Free Tier Powerful Models)
+// AI Model configurations (2 Models via OpenRouter)
 const AI_MODELS: Record<AIModel, {
   name: string;
   provider: string;
@@ -81,25 +81,25 @@ const AI_MODELS: Record<AIModel, {
   description: string;
 }> = {
   gemini: {
-    name: 'Gemini 2.0 Flash',
+    name: 'Gemini 3 Flash',
     provider: 'Google',
     IconComponent: GeminiIcon,
     color: '#4285f4',
-    description: 'Fast multimodal analysis (Free)',
+    description: 'Google\'s latest & fastest AI',
   },
   chatgpt: {
-    name: 'DeepSeek V3',
-    provider: 'DeepSeek',
-    IconComponent: LlamaIcon,
-    color: '#4F46E5',
-    description: 'Best for coding & reasoning (Free)',
+    name: 'Gemini 3 Flash',
+    provider: 'Google',
+    IconComponent: GeminiIcon,
+    color: '#4285f4',
+    description: 'Google\'s latest & fastest AI',
   },
   claude: {
-    name: 'DeepSeek R1',
-    provider: 'DeepSeek',
+    name: 'Claude Opus 4.5',
+    provider: 'Anthropic',
     IconComponent: QwenIcon,
-    color: '#7C3AED',
-    description: 'Advanced reasoning model (Free)',
+    color: '#cc785c',
+    description: 'Most capable reasoning model',
   },
 };
 
