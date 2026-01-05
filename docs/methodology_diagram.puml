@@ -1,0 +1,253 @@
+@startuml SERS_Insight_Platform_Methodology
+
+!define PRIMARY_COLOR #6366F1
+!define SECONDARY_COLOR #06B6D4
+!define ACCENT_COLOR #8B5CF6
+!define SUCCESS_COLOR #10B981
+!define WARNING_COLOR #F59E0B
+
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Inter
+skinparam defaultFontSize 11
+skinparam shadowing true
+
+skinparam rectangle {
+    BackgroundColor white
+    BorderColor #E2E8F0
+    RoundCorner 15
+}
+
+skinparam component {
+    BackgroundColor white
+    BorderColor PRIMARY_COLOR
+    RoundCorner 10
+}
+
+skinparam database {
+    BackgroundColor #F1F5F9
+    BorderColor #64748B
+}
+
+skinparam cloud {
+    BackgroundColor #EEF2FF
+    BorderColor ACCENT_COLOR
+}
+
+skinparam collections {
+    BackgroundColor #ECFDF5
+    BorderColor SUCCESS_COLOR
+}
+
+title <size:24><b>SERS-Insight Platform</b></size>\n<size:14>Surface-Enhanced Raman Spectroscopy Analysis Platform\nMethodology & Architecture Diagram</size>
+
+'=====================================
+' USER INTERFACE LAYER
+'=====================================
+rectangle "**USER INTERFACE LAYER** (Next.js 14 + TypeScript)" as UI_LAYER #EEF2FF {
+    
+    rectangle "Main Application Pages" as PAGES {
+        component "🏠 **Home Page**\n(AI Chat Interface)" as HOME #E0E7FF
+        component "🔬 **LSPR Simulation Lab**\n(Physics-based Simulation)" as SIMULATE #E0E7FF
+        component "📊 **Peak Analyzer**\n(Baseline Correction)" as PEAK_ANALYZER #E0E7FF
+        component "📈 **Visualization Studio**\n(Interactive Charts)" as VISUALIZE #E0E7FF
+        component "🔄 **Custom Workflows**\n(YAML-based Automation)" as WORKFLOWS #E0E7FF
+    }
+    
+    rectangle "Reusable Components" as COMPONENTS {
+        collections "**Layout Components**\n• Sidebar Navigation\n• Header\n• MainLayout" as LAYOUT
+        collections "**Chat Components**\n• ChatContainer\n• ChatMessage\n• ChatInput" as CHAT_COMP
+        collections "**Upload Components**\n• FileUploadZone\n• Drag & Drop" as UPLOAD_COMP
+        collections "**UI Components**\n• shadcn/ui Primitives\n• Custom SVG Icons" as UI_COMP
+    }
+    
+    rectangle "State Management" as STATE {
+        component "📦 **Zustand Store**\n• Session State\n• UI State\n• Data Context" as ZUSTAND #FEF3C7
+    }
+}
+
+'=====================================
+' API COMMUNICATION LAYER
+'=====================================
+rectangle "**API COMMUNICATION LAYER**" as API_LAYER #F0FDF4 {
+    
+    component "🔗 **REST API Client**\n(Fetch/Axios)" as API_CLIENT #DCFCE7
+    
+    note right of API_CLIENT
+        API Base URL: http://localhost:8000
+        Endpoints:
+        • POST /api/upload
+        • POST /api/preprocess
+        • POST /api/analyze
+        • POST /api/simulate
+        • POST /api/chat (streaming)
+        • GET /api/workflows
+        • GET /api/visualizations
+    end note
+}
+
+'=====================================
+' BACKEND API LAYER
+'=====================================
+rectangle "**BACKEND API LAYER** (FastAPI Python)" as BACKEND_LAYER #FEF2F2 {
+    
+    rectangle "API Routes" as ROUTES {
+        component "📤 **Upload Router**\n/api/upload\n/api/datasets" as UPLOAD_ROUTE #FEE2E2
+        component "⚙️ **Preprocess Router**\n/api/preprocess\n/api/preprocess/options" as PREPROCESS_ROUTE #FEE2E2
+        component "🔬 **Analyze Router**\n/api/analyze\n/api/frameworks" as ANALYZE_ROUTE #FEE2E2
+        component "⚡ **Simulate Router**\n/api/simulate\n/api/simulate/materials" as SIMULATE_ROUTE #FEE2E2
+        component "💬 **Chat Router**\n/api/chat\n/api/chat/stream\n/api/chat/models" as CHAT_ROUTE #FEE2E2
+        component "🔄 **Workflows Router**\n/api/workflows" as WORKFLOWS_ROUTE #FEE2E2
+        component "📊 **Visualizations Router**\n/api/visualizations" as VIZ_ROUTE #FEE2E2
+    }
+    
+    rectangle "Core Services" as CORE_SERVICES {
+        component "🤖 **AI Service**\n(OpenRouter Integration)\n• Multi-model Support\n• Streaming\n• Fallback Logic" as AI_SERVICE #FECDD3
+        component "⚙️ **Config Service**\n• Environment Settings\n• CORS Configuration\n• Directory Paths" as CONFIG_SERVICE #FECDD3
+    }
+}
+
+'=====================================
+' PROCESSING ENGINE LAYER
+'=====================================
+rectangle "**PROCESSING ENGINE LAYER**" as PROCESSING_LAYER #FDF4FF {
+    
+    rectangle "Data Processing Pipeline" as DATA_PIPELINE {
+        component "📥 **File Parser**\n• CSV/TXT/XLSX/JSON\n• Auto-delimiter Detection\n• Metadata Extraction" as FILE_PARSER #F3E8FF
+        
+        component "🔧 **Preprocessing Engine**\n• Baseline Correction (ALS)\n• Savitzky-Golay Smoothing\n• Normalization\n• Peak Detection" as PREPROCESS_ENGINE #F3E8FF
+    }
+    
+    rectangle "Analysis Frameworks" as ANALYSIS_FRAMEWORKS {
+        component "🧪 **Molecule Detection**\n• Reference Peak Library\n  (R6G, CV, NB, MB)\n• Peak Matching\n• Confidence Scoring" as MOLECULE_DETECTION #E9D5FF
+        
+        component "🧬 **Biomolecule Classification**\n• PCA Dimensionality Reduction\n• SVM Classifier\n• Random Forest Classifier\n• Cross-validation" as BIO_CLASSIFICATION #E9D5FF
+        
+        component "🦠 **Pathogen Detection**\n• 1D CNN Architecture\n• Data Augmentation\n• Ensemble Methods" as PATHOGEN_DETECTION #E9D5FF
+        
+        component "🔀 **Spectral Unmixing**\n• NMF (Non-negative Matrix)\n• ICA (Independent Component)\n• Component Separation" as SPECTRAL_UNMIXING #E9D5FF
+    }
+    
+    rectangle "LSPR Simulation Engine" as LSPR_ENGINE {
+        component "⚛️ **Drude-Lorentz Model**\n• Dielectric Function ε(ω)\n• Material Parameters\n  (Ag: ωp=9.17eV, γ=0.021eV)\n  (Au: ωp=9.03eV, γ=0.072eV)" as DRUDE_MODEL #DDD6FE
+        
+        component "🔮 **Mie Theory Calculator**\n• Extinction Cross-section\n• LSPR Peak Position\n• Shape Correction\n• Enhancement Factor" as MIE_THEORY #DDD6FE
+        
+        component "💡 **SERS Enhancement**\n• EF = |E_local/E₀|⁴\n• Hotspot Factor\n• Resonance Matching" as SERS_ENHANCEMENT #DDD6FE
+    }
+}
+
+'=====================================
+' EXTERNAL SERVICES LAYER
+'=====================================
+cloud "**EXTERNAL AI SERVICES**" as EXTERNAL_AI #EEF2FF {
+    component "🦙 **Llama 3.3 70B**\n(Meta - Free Tier)" as LLAMA_MODEL #C7D2FE
+    component "🤖 **Qwen 2.5 72B**\n(Alibaba - Free Tier)" as QWEN_MODEL #C7D2FE
+    component "✨ **Gemini 2.0 Flash**\n(Google - Free Tier)" as GEMINI_MODEL #C7D2FE
+    
+    component "🔀 **OpenRouter API**\n(Multi-model Gateway)" as OPENROUTER #A5B4FC
+}
+
+'=====================================
+' DATA STORAGE LAYER
+'=====================================
+database "**DATA STORAGE**" as STORAGE {
+    collections "📁 Uploads Directory\n(Raw Data Files)" as UPLOADS_DIR
+    collections "📊 Results Directory\n(Processed Outputs)" as RESULTS_DIR
+    collections "🧠 Models Directory\n(Trained ML Models)" as MODELS_DIR
+    collections "📷 Static Files\n(Visualizations)" as STATIC_DIR
+}
+
+'=====================================
+' SCIENTIFIC LIBRARIES
+'=====================================
+rectangle "**SCIENTIFIC COMPUTING STACK**" as SCI_STACK #FFFBEB {
+    component "🔢 **NumPy**\nNumerical Computing" as NUMPY #FEF3C7
+    component "📈 **SciPy**\n• Signal Processing\n• Optimization\n• Statistics" as SCIPY #FEF3C7
+    component "🐼 **Pandas**\nData Manipulation" as PANDAS #FEF3C7
+    component "🤖 **scikit-learn**\n• PCA\n• SVM/RF Classifiers\n• Cross-validation" as SKLEARN #FEF3C7
+}
+
+'=====================================
+' CONNECTIONS - UI to API
+'=====================================
+HOME -down-> API_CLIENT : "Chat Messages\n(SSE Streaming)"
+SIMULATE -down-> API_CLIENT : "Simulation\nParameters"
+PEAK_ANALYZER -down-> API_CLIENT : "Spectrum Data\n& Preprocessing"
+VISUALIZE -down-> API_CLIENT : "Visualization\nRequests"
+WORKFLOWS -down-> API_CLIENT : "Workflow\nExecution"
+
+LAYOUT --> PAGES
+CHAT_COMP --> HOME
+UPLOAD_COMP --> HOME
+UPLOAD_COMP --> PEAK_ANALYZER
+UI_COMP --> PAGES
+ZUSTAND --> PAGES
+
+'=====================================
+' CONNECTIONS - API Layer to Backend
+'=====================================
+API_CLIENT -down-> UPLOAD_ROUTE
+API_CLIENT -down-> PREPROCESS_ROUTE
+API_CLIENT -down-> ANALYZE_ROUTE
+API_CLIENT -down-> SIMULATE_ROUTE
+API_CLIENT -down-> CHAT_ROUTE
+API_CLIENT -down-> WORKFLOWS_ROUTE
+API_CLIENT -down-> VIZ_ROUTE
+
+'=====================================
+' CONNECTIONS - Backend to Processing
+'=====================================
+UPLOAD_ROUTE -down-> FILE_PARSER
+PREPROCESS_ROUTE -down-> PREPROCESS_ENGINE
+ANALYZE_ROUTE -down-> MOLECULE_DETECTION
+ANALYZE_ROUTE -down-> BIO_CLASSIFICATION
+ANALYZE_ROUTE -down-> PATHOGEN_DETECTION
+ANALYZE_ROUTE -down-> SPECTRAL_UNMIXING
+SIMULATE_ROUTE -down-> DRUDE_MODEL
+SIMULATE_ROUTE -down-> MIE_THEORY
+
+DRUDE_MODEL --> MIE_THEORY
+MIE_THEORY --> SERS_ENHANCEMENT
+
+'=====================================
+' CONNECTIONS - AI Service
+'=====================================
+CHAT_ROUTE -right-> AI_SERVICE
+AI_SERVICE -down-> OPENROUTER
+OPENROUTER --> LLAMA_MODEL
+OPENROUTER --> QWEN_MODEL
+OPENROUTER --> GEMINI_MODEL
+
+'=====================================
+' CONNECTIONS - Storage
+'=====================================
+FILE_PARSER -down-> UPLOADS_DIR
+PREPROCESS_ENGINE -down-> RESULTS_DIR
+ANALYSIS_FRAMEWORKS -down-> MODELS_DIR
+VIZ_ROUTE -down-> STATIC_DIR
+
+'=====================================
+' CONNECTIONS - Scientific Libraries
+'=====================================
+PREPROCESS_ENGINE -right-> NUMPY
+PREPROCESS_ENGINE -right-> SCIPY
+FILE_PARSER -right-> PANDAS
+ANALYSIS_FRAMEWORKS -right-> SKLEARN
+LSPR_ENGINE -right-> NUMPY
+
+'=====================================
+' LEGEND
+'=====================================
+legend bottom
+    |= Color |= Layer |
+    | <#EEF2FF> | Frontend (Next.js) |
+    | <#F0FDF4> | API Communication |
+    | <#FEF2F2> | Backend (FastAPI) |
+    | <#FDF4FF> | Processing Engines |
+    | <#FFFBEB> | Scientific Libraries |
+    | <#EEF2FF> (cloud) | External AI Services |
+endlegend
+
+footer \n<size:10>SERS-Insight Platform v1.0.0 | MIT License | Architecture Methodology Diagram</size>
+
+@enduml

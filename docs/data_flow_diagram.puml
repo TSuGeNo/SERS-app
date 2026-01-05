@@ -1,0 +1,315 @@
+@startuml SERS_Insight_Data_Flow
+
+!define PRIMARY_COLOR #6366F1
+!define SECONDARY_COLOR #06B6D4
+!define ACCENT_COLOR #8B5CF6
+!define SUCCESS_COLOR #10B981
+!define WARNING_COLOR #F59E0B
+
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Inter
+skinparam defaultFontSize 10
+skinparam shadowing true
+
+skinparam activity {
+    BackgroundColor white
+    BorderColor PRIMARY_COLOR
+    DiamondBackgroundColor #FEF3C7
+    DiamondBorderColor WARNING_COLOR
+}
+
+skinparam swimlane {
+    BorderColor #CBD5E1
+    TitleFontSize 14
+}
+
+title <size:22><b>SERS-Insight Platform - Data Flow Diagram</b></size>\n<size:12>Complete Workflow from Data Input to Analysis Output</size>
+
+|#EEF2FF|Frontend|
+|#FEF2F2|Backend|
+|#FDF4FF|Processing|
+|#ECFDF5|Output|
+
+|Frontend|
+start
+:👤 **User Interaction**
+Select module from sidebar;
+
+fork
+    :📊 **AI Chat Analysis**
+    Upload spectrum data;
+    
+    :💬 Enter analysis query
+    (Natural language);
+fork again
+    :🔬 **LSPR Simulation**
+    Configure parameters;
+    
+    :⚙️ Set:
+    • Material (Ag/Au)
+    • Shape (sphere/rod/star/cube)
+    • Size (10-150nm)
+    • Excitation wavelength;
+fork again
+    :📈 **Peak Analyzer**
+    Upload CSV/TXT file;
+    
+    :📋 Data Preview
+    Select X & Y columns;
+fork again
+    :📊 **Visualization**
+    Load spectrum data;
+    
+    :🎨 Select chart type
+    (spectrum/PCA/heatmap);
+end fork
+
+|Backend|
+
+' ========== UPLOAD FLOW ==========
+partition "**Data Upload Flow**" {
+    :📤 POST /api/upload;
+    
+    :🔍 Detect file type
+    (CSV/TXT/XLSX/JSON/Image);
+    
+    :📂 Save to uploads/
+    (UUID filename);
+    
+    :📊 Parse & extract metadata
+    • Column names
+    • Row count
+    • Wavenumber range;
+    
+    :✅ Return DatasetInfo;
+}
+
+' ========== PREPROCESS FLOW ==========
+partition "**Preprocessing Pipeline**" {
+    :⚙️ POST /api/preprocess;
+    
+    |Processing|
+    
+    :📥 Load spectrum data
+    (wavenumber[], intensity[]);
+    
+    if (Baseline Correction?) then (yes)
+        :🔧 **ALS Algorithm**
+        ε(ω) baseline estimation
+        --
+        • λ smoothness param
+        • p asymmetry param;
+        
+        :➖ Subtract baseline
+        intensity = raw - baseline;
+    endif
+    
+    if (Smoothing?) then (yes)
+        :📊 **Savitzky-Golay Filter**
+        --
+        • window_length (odd)
+        • polyorder (1-5);
+    endif
+    
+    if (Normalization?) then (yes)
+        switch (Method?)
+        case (vector)
+            :÷ ||y||₂;
+        case (max)
+            :÷ max(y);
+        case (minmax)
+            :(y - min) / (max - min);
+        endswitch
+    endif
+    
+    if (Peak Detection?) then (yes)
+        :🔎 **find_peaks()**
+        --
+        • prominence threshold
+        • minimum distance;
+        
+        :📍 Extract peak info:
+        • Wavenumber position
+        • Intensity
+        • FWHM
+        • Area;
+    endif
+    
+    |Backend|
+    :✅ Return PreprocessResponse;
+}
+
+' ========== ANALYSIS FLOW ==========
+partition "**Analysis Frameworks**" {
+    :🔬 POST /api/analyze;
+    
+    switch (Framework?)
+    
+    case (molecule_detection)
+        |Processing|
+        :🧪 **Molecule Detection**;
+        
+        :📚 Load reference library
+        (R6G, CV, NB, MB peaks);
+        
+        :🎯 Peak matching
+        tolerance = ±15 cm⁻¹;
+        
+        :📊 Calculate confidence
+        matched_peaks / total_peaks;
+        
+        |Backend|
+        :✅ Detection result
+        • Molecule name
+        • Confidence score
+        • Matched peaks;
+        
+    case (biomolecule_classification)
+        |Processing|
+        :🧬 **PCA + Classification**;
+        
+        :📉 StandardScaler
+        normalize features;
+        
+        :📊 PCA reduction
+        n_components = 5;
+        
+        if (Classifier?) then (SVM)
+            :🤖 SVM (RBF kernel);
+        else (RF)
+            :🌳 Random Forest
+            n_estimators = 100;
+        endif
+        
+        :✂️ Cross-validation
+        k-fold = 5;
+        
+        |Backend|
+        :✅ Classification result
+        • Accuracy
+        • Precision/Recall
+        • Confusion matrix;
+        
+    case (spectral_unmixing)
+        |Processing|
+        :🔀 **NMF/ICA Unmixing**;
+        
+        :📊 Decompose spectra
+        into components;
+        
+        |Backend|
+        :✅ Component spectra
+        & concentrations;
+    endswitch
+}
+
+' ========== SIMULATION FLOW ==========
+partition "**LSPR Simulation**" {
+    :⚡ POST /api/simulate;
+    
+    |Processing|
+    :⚛️ **Drude-Lorentz Model**;
+    
+    :📐 Calculate dielectric function
+    ε(ω) = ε∞ - ωₚ² / (ω² + iγω)
+    --
+    **Ag:** ε∞=3.7, ωₚ=9.17eV, γ=0.021eV
+    **Au:** ε∞=9.84, ωₚ=9.03eV, γ=0.072eV;
+    
+    :🔮 **Mie Theory**
+    Calculate extinction;
+    
+    :📍 Determine LSPR peak
+    λ_LSPR = base + size_shift + shape_shift;
+    
+    :✨ **Enhancement Factor**
+    EF = |E_local/E₀|⁴ ∝ |α|⁴
+    --
+    Shape multipliers:
+    • Sphere: 1.0×
+    • Rod: 2.5× 
+    • Star: 10.0×
+    • Cube: 1.5×;
+    
+    :📏 Calculate FWHM
+    Intrinsic + Radiative damping;
+    
+    :💡 Generate recommendation
+    Based on wavelength matching;
+    
+    |Backend|
+    :✅ SimulateResponse
+    • LSPR peak (nm)
+    • Enhancement factor
+    • FWHM
+    • Extinction spectrum
+    • Recommendation;
+}
+
+' ========== AI CHAT FLOW ==========
+partition "**AI-Powered Chat**" {
+    :💬 POST /api/chat/stream;
+    
+    :🔄 Format data context
+    (spectrum stats, peak info);
+    
+    :🤖 Build SERS expert prompt;
+    
+    :🔗 OpenRouter API call;
+    
+    fork
+        :🦙 Llama 3.3 70B
+        (Primary);
+    fork again
+        :✨ Gemini 2.0 Flash
+        (Fallback 1);
+    fork again
+        :🤖 Qwen 2.5 72B
+        (Fallback 2);
+    end fork
+    
+    :📡 SSE Streaming response;
+    
+    |Output|
+    :💬 Display AI response
+    with markdown rendering;
+}
+
+' ========== OUTPUT FLOW ==========
+|Output|
+
+fork
+    :📊 **Interactive Charts**
+    (Plotly.js visualization);
+    
+    :🖼️ Export options:
+    • PNG
+    • SVG
+    • CSV data;
+fork again
+    :📋 **Results Panel**
+    • Detected peaks table
+    • Classification metrics
+    • Parameters summary;
+fork again
+    :💾 **Download Results**
+    Processed data export;
+end fork
+
+:✅ **Analysis Complete**;
+
+stop
+
+legend right
+    |= Symbol |= Description |
+    | 📤 | File Upload |
+    | ⚙️ | Processing Step |
+    | 🔬 | Analysis |
+    | 🤖 | AI/ML Model |
+    | 📊 | Visualization |
+    | ✅ | Output/Result |
+endlegend
+
+footer \n<size:10>SERS-Insight Platform - Data Processing Workflow v1.0.0</size>
+
+@enduml
