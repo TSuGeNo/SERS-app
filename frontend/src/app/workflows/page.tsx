@@ -527,16 +527,16 @@ export default function WorkflowsPage() {
 
     return (
         <MainLayout>
-            <div className="flex flex-col h-full overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50/30 to-white">
+            <div className="flex flex-col h-full overflow-hidden bg-white">
                 {/* Header */}
-                <div className="p-6 border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+                <div className="p-6 border-b bg-white">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-200">
+                            <div className="p-2.5 rounded-xl bg-green-500">
                                 <Workflow className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-green-600">Scientific Workflows</h1>
+                                <h1 className="text-2xl font-bold">Scientific Workflows</h1>
                                 <p className="text-muted-foreground">
                                     Pre-built, validated SERS analysis pipelines with real scientific computation
                                 </p>

@@ -325,27 +325,27 @@ export default function SimulatePage() {
 
     return (
         <MainLayout>
-            <div className="flex flex-col h-full overflow-auto bg-gradient-to-br from-slate-50 via-teal-50/30 to-white">
+            <div className="flex flex-col h-full overflow-auto">
                 {/* Header */}
-                <div className="p-6 border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+                <div className="p-6 border-b bg-white">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-200">
+                        <div className="p-2.5 rounded-xl gradient-primary">
                             <FlaskConical className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-cyan-600">LSPR Simulation Lab</h1>
+                            <h1 className="text-2xl font-bold">LSPR Simulation Lab</h1>
                             <p className="text-muted-foreground">
                                 Physics-based SERS enhancement simulation using Mie theory and Drude-Lorentz model
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
-                        <Badge variant="outline" className="gap-1 border-teal-200 text-teal-700">
+                        <Badge variant="outline" className="gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Scientifically Validated
                         </Badge>
-                        <Badge variant="outline" className="border-teal-200 text-teal-700">Mie Theory</Badge>
-                        <Badge variant="outline" className="border-teal-200 text-teal-700">Drude-Lorentz Model</Badge>
+                        <Badge variant="outline">Mie Theory</Badge>
+                        <Badge variant="outline">Drude-Lorentz Model</Badge>
                     </div>
                 </div>
 

@@ -767,27 +767,23 @@ export default function Home() {
         const response = await fetch(`${API_BASE_URL}/api/chat/verify`);
         if (response.ok) {
           const data = await response.json();
-          // Always show all models as available - they work in demo mode too
-          const totalModels = Object.keys(AI_MODELS).length;
           setModelStatus({
             verified: true,
             message: data.api_key_valid
               ? `${data.available_models}/${data.total_models} models available`
-              : `${totalModels}/${totalModels} models available (Demo)`
+              : 'Demo mode - no API key configured'
           });
-        } else {
-          // Backend responded but with error - still show local mode works
-          setModelStatus({
-            verified: true,
-            message: `${Object.keys(AI_MODELS).length}/${Object.keys(AI_MODELS).length} models available`
-          });
+
+          if (!data.api_key_valid) {
+            setFallbackNotice('Running in demo mode. Configure API key for real AI responses.');
+            setTimeout(() => setFallbackNotice(null), 8000);
+          }
         }
       } catch (error) {
         console.log('Backend not available, using local fallback mode');
-        // Even without backend, local mode works with all models
         setModelStatus({
-          verified: true,
-          message: `${Object.keys(AI_MODELS).length}/${Object.keys(AI_MODELS).length} models (Local)`
+          verified: false,
+          message: 'Backend offline - using local mode'
         });
       }
     };
@@ -1071,9 +1067,9 @@ export default function Home() {
 
   return (
     <MainLayout>
-      <div className="flex h-full bg-gradient-to-br from-slate-50 via-indigo-50/20 to-white">
+      <div className="flex h-full bg-white">
         {/* Left Panel - Data & Model Selection */}
-        <div className="w-80 border-r flex flex-col bg-white/80 backdrop-blur-sm">
+        <div className="w-80 border-r flex flex-col bg-slate-50">
           {/* Model Selection */}
           <div className="p-4 border-b bg-white">
             <div className="flex items-center gap-2 mb-3">
